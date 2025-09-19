@@ -1,0 +1,17 @@
+{
+  "pinned_message_id": null,
+  "users": {},
+  "admin_logs": {},
+  "events": {
+    "start_command": 0,
+    "preview_ks": 0,
+    "preview_gs": 0,
+    "next_preview": 0,
+    "prices_ks": 0,
+    "prices_gs": 0,
+    "package_selected": 0,
+    "payment_paypal": 0,
+    "payment_crypto": 0,
+    "payment_voucher": 0
+  }
+}
