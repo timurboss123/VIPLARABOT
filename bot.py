@@ -1,3 +1,5 @@
+Carl code:
+
 import os
 import logging
 import json
@@ -29,8 +31,8 @@ AGE_LUNA = os.getenv("AGE_LUNA", "21")
 ADMIN_USER_ID = os.getenv("ADMIN_USER_ID")
 NOTIFICATION_GROUP_ID = os.getenv("NOTIFICATION_GROUP_ID")
 
-BTC_WALLET = "1FcgMLNBDLiuDSDip7AStuP19sq47LJB12"
-ETH_WALLET = "0xeeb8FDc4aAe71B53934318707d0e9747C5c66f6e"
+BTC_WALLET = "NICHT VERFÜGBAR "
+ETH_WALLET = "NICHT VERFÜGBAR "
 
 PRICES = {"bilder": {10: 5, 25: 10, 35: 15}, "videos": {10: 15, 25: 25, 35: 30}}
 VOUCHER_FILE = "vouchers.json"
@@ -54,7 +56,7 @@ def save_vouchers(vouchers):
 def load_stats():
     try:
         with open(STATS_FILE, "r") as f: return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError): 
+    except (FileNotFoundError, json.JSONDecodeError):
         return {"pinned_message_id": None, "users": {}, "admin_logs": {}, "events": {}}
 
 def save_stats(stats):
@@ -73,7 +75,7 @@ async def check_user_status(user_id: int, context: ContextTypes.DEFAULT_TYPE):
     user_id_str = str(user_id)
     now = datetime.now()
     user_data = stats.get("users", {}).get(user_id_str)
-    
+
     if user_data is None:
         stats.get("users", {})[user_id_str] = {"last_start": now.isoformat()}
         save_stats(stats)
@@ -81,12 +83,12 @@ async def check_user_status(user_id: int, context: ContextTypes.DEFAULT_TYPE):
         return "new", True
 
     last_start_dt = datetime.fromisoformat(user_data.get("last_start"))
-    
+
     if now - last_start_dt > timedelta(hours=24):
         stats["users"][user_id_str]["last_start"] = now.isoformat()
         save_stats(stats)
         return "returning", True
-    
+
     stats["users"][user_id_str]["last_start"] = now.isoformat()
     save_stats(stats)
     return "active", False
@@ -96,7 +98,7 @@ async def send_or_update_admin_log(context: ContextTypes.DEFAULT_TYPE, user: Use
         user_id_str = str(user.id)
         stats = load_stats()
         admin_logs = stats.get("admin_logs", {})
-        
+
         user_log = admin_logs.get(user_id_str, {})
         base_text = user_log.get("base_text")
         log_message_id = user_log.get("message_id")
@@ -104,13 +106,13 @@ async def send_or_update_admin_log(context: ContextTypes.DEFAULT_TYPE, user: Use
         if base_text_override:
             base_text = base_text_override
             user_log["base_text"] = base_text
-        
+
         if not base_text:
             base_text = f"👤 *Nutzer-Aktivität*\n\n*ID:* `{user.id}`\n*Name:* {user.first_name}"
             user_log["base_text"] = base_text
-        
+
         final_text = f"{base_text}\n\n`Aktion: {event_text}`".strip() if event_text else base_text
-        
+
         if log_message_id:
             try:
                 await context.bot.edit_message_text(chat_id=NOTIFICATION_GROUP_ID, message_id=log_message_id, text=final_text, parse_mode='Markdown')
@@ -230,7 +232,7 @@ async def send_preview_message(update: Update, context: ContextTypes.DEFAULT_TYP
     image_to_show_path = image_paths[0]
     with open(image_to_show_path, 'rb') as photo_file:
         photo_message = await context.bot.send_photo(chat_id=chat_id, photo=photo_file, protect_content=True)
-    if schwester_code == 'gs': caption = f"Heyy ich bin Lara, ich bin {AGE_ANNA} Jahre alt und mache mit meiner Schwester zusammen 🌶️ videos und Bilder falls du lust hast speziele videos zu bekommen schreib mir 😏 @lara_groner"
+    if schwester_code == 'gs': caption = f"Heyy ich bin Nora, ich bin {AGE_ANNA} Jahre alt und mache mit meiner Schwester zusammen 🌶️ videos und Bilder falls du lust hast speziele videos zu bekommen schreib mir 😏 @lara_groner"
     else: caption = f"Heyy, mein name ist Luna ich bin {AGE_LUNA} Jahre alt und mache 🌶️ videos und Bilder. wenn du Spezielle wünsche hast schreib meiner Schwester für mehr.\nMeine Schwester: @lara_groner"
     keyboard_buttons = [[InlineKeyboardButton("🛍️ Zu den Preisen", callback_data=f"select_schwester:{schwester_code}:prices")], [InlineKeyboardButton("🖼️ Nächstes Bild", callback_data=f"next_preview:{schwester_code}")], [InlineKeyboardButton("« Zurück zum Hauptmenü", callback_data="main_menu")]]
     text_message = await context.bot.send_message(chat_id=chat_id, text=caption, reply_markup=InlineKeyboardMarkup(keyboard_buttons))
@@ -374,8 +376,15 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
         elif data.startswith("show_wallet:"):
             _, crypto_type, media_type, amount_str = parts; amount = int(amount_str); price = PRICES[media_type][amount]
-            wallet_address = BTC_WALLET if crypto_type == "btc" else ETH_WALLET; crypto_name = "Bitcoin (BTC)" if crypto_type == "btc" else "Ethereum (ETH)"
-            text = (f"Zahlung mit **{crypto_name}** ...")
+            wallet_address = BTC_WALLET if crypto_type == "btc" else ETH_WALLET
+            crypto_name = "Bitcoin (BTC)" if crypto_type == "btc" else "Ethereum (ETH)"
+            text = (
+                f"Super! Um deine Bestellung (**{amount} {media_type.capitalize()}** für **{price}€**) mit **{crypto_name}** zu bezahlen, "
+                f"sende den entsprechenden Betrag an die folgende Adresse.\n\n"
+                f"**Wichtig:** Melde dich nach der Zahlung bei @noranik08 mit deinem Telegram-Namen und der Transaktions-ID, "
+                f"damit wir deine Bestellung zuordnen können.\n\n"
+                f"**Wallet-Adresse zum Kopieren:**\n`{wallet_address}`"
+            )
             keyboard = [[InlineKeyboardButton("« Zurück zur Krypto-Wahl", callback_data=f"pay_crypto:{media_type}:{amount}")]]
             await query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard), parse_mode='Markdown')
         elif data.startswith("voucher_provider:"):
@@ -443,7 +452,7 @@ def main() -> None:
     application.add_handler(CommandHandler("setsummary", set_summary_message))
     application.add_handler(CallbackQueryHandler(handle_callback_query))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
-    
+
     if WEBHOOK_URL:
         port = int(os.environ.get("PORT", 8443))
         application.run_webhook(
